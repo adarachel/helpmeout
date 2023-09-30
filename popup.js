@@ -1,51 +1,62 @@
-// popup.js
-document.addEventListener("DOMContentLoaded", function () {
-    const startRecordingButton = document.getElementById("startRecording");
-    const stopRecordingButton = document.getElementById("stopRecording");
+let mediaRecorder;
+let recordedChunks = [];
 
-    startRecordingButton.addEventListener("click", startRecording);
-    stopRecordingButton.addEventListener("click", stopRecording);
+function handleDataAvailable(event) {
+    if (event.data.size > 0) {
+        recordedChunks.push(event.data);
+    }
+}
 
-    let mediaRecorder;
-    let chunks = [];
+function handleStop() {
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const formData = new FormData();
+    formData.append('video', blob, 'screen-recording.webm');
 
-    async function startRecording() {
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) {
-                chunks.push(e.data);
+    fetch('https://video-api-5wh1.onrender.com/api', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => {
+            if (response.ok) {
+                console.log('Screen recording uploaded successfully!');
+            } else {
+                console.error('Failed to upload screen recording.');
             }
-        };
+        })
+        .catch(error => {
+            console.error('Error occurred while uploading screen recording:', error);
+        });
 
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(chunks, { type: "video/webm" });
-            const formData = new FormData();
-            formData.append("video", blob, "recorded-screen.webm");
+    recordedChunks = [];
+    mediaRecorder = null;
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+}
 
-            fetch("https://video-api-5wh1.onrender.com/api/upload", {
-                method: "POST",
-                body: formData,
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    // Handle the response from your backend as needed
-                    console.log("Video uploaded:", data);
-                })
-                .catch((error) => {
-                    console.error("Error uploading video:", error);
-                });
-        };
+document.getElementById('startBtn').addEventListener('click', () => {
+    chrome.desktopCapture.chooseDesktopMedia(['screen'], (streamId) => {
+        navigator.webkitGetUserMedia({
+            audio: false,
+            video: {
+                mandatory: {
+                    chromeMediaSource: 'desktop',
+                    chromeMediaSourceId: streamId
+                }
+            }
+        }, (stream) => {
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = handleDataAvailable;
+            mediaRecorder.onstop = handleStop;
+            mediaRecorder.start();
 
-        mediaRecorder.start();
-        startRecordingButton.disabled = true;
-        stopRecordingButton.disabled = false;
-    }
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+        }, (error) => {
+            console.error('Error occurred while accessing screen media:', error);
+        });
+    });
+});
 
-    function stopRecording() {
-        mediaRecorder.stop();
-        startRecordingButton.disabled = false;
-        stopRecordingButton.disabled = true;
-    }
-});  
+document.getElementById('stopBtn').addEventListener('click', () => {
+    mediaRecorder.stop();
+});

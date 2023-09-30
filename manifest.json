@@ -9,23 +9,19 @@
         "desktopCapture",
         "identity"
     ],
-    "action": {
+    "background": {
+        "scripts": [
+            "background.js"
+        ],
+        "persistent": false
+    },
+    "browser_action": {
         "default_popup": "popup.html",
-        "default_icon": {
-            "16": "images/icon16.png",
-            "48": "images/icon48.png",
-            "128": "images/icon128.png"
-        }
+        "default_title": "Screen Recorder"
     },
     "icons": {
         "16": "images/icon16.png",
         "48": "images/icon48.png",
         "128": "images/icon128.png"
-    },
-    "host_permissions": [
-        "https://video-api-5wh1.onrender.com/api/*"
-    ],
-    "background": {
-        "service_worker": "background.js"
     }
 }
