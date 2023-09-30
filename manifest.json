@@ -1,27 +1,23 @@
 {
     "manifest_version": 3,
-    "name": "Screen Recorder Extension",
+    "name": "Screen Recording Extension",
     "version": "1.0",
-    "description": "Record your screen and send to a backend server.",
     "permissions": [
-        "activeTab",
-        "storage",
         "desktopCapture",
-        "identity"
+        "audioCapture"
+    ],
+    "host_permissions": [
+        "https://video-api-5wh1.onrender.com/api"
     ],
     "background": {
-        "scripts": [
-            "background.js"
-        ],
-        "persistent": false
+        "service_worker": "background.js"
     },
-    "browser_action": {
+    "action": {
         "default_popup": "popup.html",
-        "default_title": "Screen Recorder"
-    },
-    "icons": {
-        "16": "images/icon16.png",
-        "48": "images/icon48.png",
-        "128": "images/icon128.png"
+        "default_icon": {
+            "16": "images/icon16.png",
+            "48": "images/icon48.png",
+            "128": "images/icon128.png"
+        }
     }
 }

@@ -1,12 +1,8 @@
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
-        chrome.declarativeContent.onPageChanged.addRules([{
-            conditions: [
-                new chrome.declarativeContent.PageStateMatcher({
-                    pageUrl: { hostEquals: 'your-website.com' } // Replace with your website's URL
-                })
-            ],
-            actions: [new chrome.declarativeContent.ShowPageAction()]
-        }]);
+chrome.action.onClicked.addListener((tab) => {
+    chrome.windows.create({
+        url: 'popup.html',
+        type: 'popup',
+        width: 300,
+        height: 200
     });
 });

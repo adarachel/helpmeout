@@ -1,62 +1,46 @@
-let mediaRecorder;
-let recordedChunks = [];
+document.addEventListener('DOMContentLoaded', () => {
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    let mediaRecorder;
+    let recordedChunks = [];
 
-function handleDataAvailable(event) {
-    if (event.data.size > 0) {
-        recordedChunks.push(event.data);
-    }
-}
-
-function handleStop() {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const formData = new FormData();
-    formData.append('video', blob, 'screen-recording.webm');
-
-    fetch('https://video-api-5wh1.onrender.com/api', {
-        method: 'POST',
-        body: formData
-    })
-        .then(response => {
-            if (response.ok) {
-                console.log('Screen recording uploaded successfully!');
-            } else {
-                console.error('Failed to upload screen recording.');
-            }
-        })
-        .catch(error => {
-            console.error('Error occurred while uploading screen recording:', error);
+    startButton.addEventListener('click', async () => {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: { mediaSource: 'screen' },
+            audio: true
         });
 
-    recordedChunks = [];
-    mediaRecorder = null;
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-}
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (event) => {
+            recordedChunks.push(event.data);
+        };
+        mediaRecorder.start();
 
-document.getElementById('startBtn').addEventListener('click', () => {
-    chrome.desktopCapture.chooseDesktopMedia(['screen'], (streamId) => {
-        navigator.webkitGetUserMedia({
-            audio: false,
-            video: {
-                mandatory: {
-                    chromeMediaSource: 'desktop',
-                    chromeMediaSourceId: streamId
-                }
-            }
-        }, (stream) => {
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-            mediaRecorder.ondataavailable = handleDataAvailable;
-            mediaRecorder.onstop = handleStop;
-            mediaRecorder.start();
-
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = false;
-        }, (error) => {
-            console.error('Error occurred while accessing screen media:', error);
-        });
+        startButton.disabled = true;
+        stopButton.disabled = false;
     });
-});
 
-document.getElementById('stopBtn').addEventListener('click', () => {
-    mediaRecorder.stop();
+    stopButton.addEventListener('click', () => {
+        mediaRecorder.stop();
+        startButton.disabled = false;
+        stopButton.disabled = true;
+
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const formData = new FormData();
+        formData.append('video', blob, 'recorded.webm');
+
+        fetch('https://video-api-5wh1.onrender.com/api', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Video uploaded successfully:', data);
+            })
+            .catch(error => {
+                console.error('Error uploading video:', error);
+            });
+
+        recordedChunks = [];
+    });
 });
