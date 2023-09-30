@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Screen Recorder Extension",
     "version": "1.0",
-    "description": "Chrome Extension for Screen Recording",
+    "description": "Record your screen and send to a backend server.",
     "permissions": [
         "activeTab",
         "storage",
@@ -25,21 +25,7 @@
     "host_permissions": [
         "https://video-api-5wh1.onrender.com/api/*"
     ],
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "content.js"
-            ]
-        }
-    ],
     "background": {
         "service_worker": "background.js"
-    },
-    "options_ui": {
-        "page": "options.html",
-        "chrome_style": true
     }
 }
