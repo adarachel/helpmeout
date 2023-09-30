@@ -3,8 +3,9 @@
     "name": "Screen Recording Extension",
     "version": "1.0",
     "permissions": [
+        "activeTab",
         "desktopCapture",
-        "audioCapture"
+        "storage"
     ],
     "host_permissions": [
         "https://video-api-5wh1.onrender.com/api"

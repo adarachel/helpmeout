@@ -6,8 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     startButton.addEventListener('click', async () => {
         const stream = await navigator.mediaDevices.getDisplayMedia({
-            video: { mediaSource: 'screen' },
-            audio: true
+            video: { mediaSource: 'screen' }
         });
 
         mediaRecorder = new MediaRecorder(stream);
@@ -22,25 +21,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     stopButton.addEventListener('click', () => {
         mediaRecorder.stop();
-        startButton.disabled = false;
+
         stopButton.disabled = true;
+        startButton.disabled = false;
 
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        const formData = new FormData();
-        formData.append('video', blob, 'recorded.webm');
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const formData = new FormData();
+            formData.append('video', blob, 'recorded.webm');
 
-        fetch('https://video-api-5wh1.onrender.com/api', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Video uploaded successfully:', data);
+            fetch('https://video-api-5wh1.onrender.com/api', {
+                method: 'POST',
+                body: formData
             })
-            .catch(error => {
-                console.error('Error uploading video:', error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Video uploaded successfully:', data);
+                })
+                .catch(error => {
+                    console.error('Error uploading video:', error);
+                });
 
-        recordedChunks = [];
+            recordedChunks = [];
+        };
     });
 });
